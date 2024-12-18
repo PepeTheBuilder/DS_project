@@ -1,0 +1,146 @@
+services:
+  db-users:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: users
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - postgres_data_users:/var/lib/postgresql/data
+      - ./users.sql:/docker-entrypoint-initdb.d/users.sql
+    networks:
+      - db-network
+    ports:
+      - "5433:5432"
+
+  db-monitor:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: monitor
+      POSTGRES_HOST_AUTH_METHOD: trust
+    networks:
+      - db-network
+    ports:
+      - "5432:5432"
+
+  db-devices:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: devices
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - postgres_data_devices:/var/lib/postgresql/data
+      - ./devices.sql:/docker-entrypoint-initdb.d/devices.sql
+    networks:
+      - db-network
+    ports:
+      - "5434:5432"
+
+  traefik:
+    image: traefik:v2.10
+    command:
+      - --api.insecure=true
+      - --providers.docker=true
+      - --log.level=DEBUG
+      - "--entryPoints.web.address=:80"
+      - --providers.docker.exposedByDefault=true
+    ports:
+      - "80:80"  
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - db-network
+
+  backend-users:
+    build:
+      context: ./proiect_DS/
+      dockerfile: dockerfile-user-backend
+    networks:
+      - db-network
+    depends_on:
+      - db-users
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db-users:5432/users?currentSchema=users
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: admin
+    ports:
+      - "8081:8081"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend-users.rule=PathPrefix(`/api/users`)"
+      - "traefik.http.middlewares.backend-users-strip.stripprefix.prefixes=/api/users"
+      - "traefik.http.routers.backend-users.middlewares=backend-users-strip"
+      - "traefik.http.services.backend-users.loadbalancer.server.port=8081"
+
+    deploy:
+      replicas: 1  
+
+  backend-devices:
+    build:
+      context: ./proiect_ds_devices/
+      dockerfile: dockerfile-device
+    networks:
+      - db-network
+    depends_on:
+      - backend-users
+      - db-devices
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db-devices:5432/devices?currentSchema=devices
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: admin
+    ports:
+      - "8080:8080"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend-devices.rule=PathPrefix(`/api/devices`)"
+      - "traefik.http.middlewares.backend-devices-strip.stripprefix.prefixes=/api/devices"
+      - "traefik.http.routers.backend-devices.middlewares=backend-devices-strip"
+      - "traefik.http.services.backend-devices.loadbalancer.server.port=8080"
+    deploy:
+      replicas: 1 
+
+  backend-monitor:
+    build:
+      context: ./monitoring/
+      dockerfile: dockerfile-monitoring
+    networks:
+      - db-network
+    depends_on:
+      - backend-devices
+      - db-monitor
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db-monitor:5432/postgres
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: admin
+    ports:
+      - "8082:8082"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend-monitor.rule=PathPrefix(`/api/monitor`)"
+      - "traefik.http.middlewares.backend-monitor-strip.stripprefix.prefixes=/api/monitor"
+      - "traefik.http.routers.backend-monitor.middlewares=backend-monitor-strip"
+      - "traefik.http.services.backend-monitor.loadbalancer.server.port=8082"
+    deploy:
+      replicas: 1 
+
+  frontend:
+    build:
+      context: ./ds-project
+      dockerfile: dockerfile-frontend
+    ports:
+      - "4200:4200"
+    networks:
+      - db-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
+      - "traefik.http.services.frontend.loadbalancer.server.port=4200"
+      - "traefik.http.routers.frontend.entrypoints=web"
+      - "traefik.http.routers.frontend.middlewares=frontend-strip"
+
+networks:
+  db-network:
+    driver: bridge
+
+volumes:
+  postgres_data_users:
+  postgres_data_devices:

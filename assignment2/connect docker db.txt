@@ -1,0 +1,12 @@
+connect to monitor db:
+psql -U postgres
+select * from device_monitor
+
+
+connect to devices db:
+psql -U postgres -d devices
+select * from devices.devices;  -- maybe? not tested
+
+connect to users db:
+psql -U postgres -d users
+select * from users.users;   --? maybe idk

@@ -1,0 +1,33 @@
+# Stage 1: Build the application with Gradle and Java 17
+FROM gradle:8.3.0-jdk17 AS builder
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy only the Gradle wrapper and build scripts
+COPY gradlew gradlew.bat settings.gradle build.gradle ./
+COPY gradle ./gradle
+
+# Pre-download dependencies to use caching
+RUN ./gradlew build -x test --parallel --no-daemon || return 0
+
+# Copy the rest of the application source code
+COPY src ./src
+
+# Build the application
+RUN ./gradlew bootJar -x test --no-daemon
+
+# Stage 2: Run the application with a lightweight Java 17 runtime
+FROM eclipse-temurin:17-jre
+
+# Set the working directory
+WORKDIR /app
+
+# Copy the Spring Boot JAR file from the builder stage
+COPY --from=builder /app/build/libs/*.jar app.jar
+
+# Expose the port that Spring Boot will run on
+EXPOSE 8082
+
+# Command to run the JAR file
+ENTRYPOINT ["java", "-jar", "app.jar"]
