@@ -1,0 +1,63 @@
+services:
+  db-users:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: users
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - postgres_data_users:/var/lib/postgresql/data
+      - ./users.sql:/docker-entrypoint-initdb.d/users.sql
+    networks:
+      - db-network
+    ports:
+      - "5433:5432"  # Expose the users schema container on port 5433
+
+  db-devices:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: devices
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - postgres_data_devices:/var/lib/postgresql/data
+      - ./devices.sql:/docker-entrypoint-initdb.d/devices.sql
+    networks:
+      - db-network
+    ports:
+      - "5434:5432"  # Expose the devices schema container on port 5434
+
+  backend-users:
+    build:
+      context: ./proiect_DS/
+      dockerfile: dockerfile-user-backend
+    networks:
+      - db-network
+    depends_on:
+      - db-users
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db-users:5432/users?currentSchema=users
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: admin
+    ports:
+      - "8081:8081"  # Expose backend-users service on port 8081
+
+  backend-devices:
+    build:
+      context: ./proiect_ds_devices/
+      dockerfile: dockerfile-device  
+    networks:
+      - db-network
+    depends_on:
+      - db-devices
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db-devices:5432/devices?currentSchema=devices
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: admin
+    ports:
+      - "8080:8080"  # Expose backend-devices service on port 8082
+
+networks:
+  db-network:
+
+volumes:
+  postgres_data_users:
+  postgres_data_devices:

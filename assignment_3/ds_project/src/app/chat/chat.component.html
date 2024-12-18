@@ -1,0 +1,41 @@
+<div class="chat-container">
+  <div class="messages">
+    <div *ngFor="let msg of messages" [ngStyle]="{'color': (msg.sender === 'SEEN' || msg.sender === 'TYPING' || msg.sender === 'STOP_TYPING') ? 'white' : 'black'}">
+      <strong>{{ msg.sender }}</strong>: {{ msg.content }}
+      <span *ngIf="msg.sender === 'SEEN'" style="float: right; color: green;">SEEN</span>
+      <span *ngIf="msg.sender === 'TYPING'" style="float: right; color: blue;">Typing...</span>
+      <span *ngIf="msg.sender === 'STOP_TYPING'" style="float: right; color: red;">Stopped typing</span>
+    </div>
+  </div>
+
+  <!-- Message input area -->
+  <div class="chat-input">
+    <input
+      type="text"
+      [(ngModel)]="newMessage"
+      (ngModelChange)="onInputChange()"
+      placeholder="Type your message..."
+    />
+    <button (click)="sendMessage()">Send</button>
+    <button (click)="sendMessageBroadcast()">Send Brodcast</button>
+  </div>
+  
+  
+  <!-- Users table for selecting receiver -->
+  <div class="user-selection">
+    <table>
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of users">
+          <td>{{ user }}</td>
+          <td><button (click)="selectReceiver(user)">Select Receiver</button></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

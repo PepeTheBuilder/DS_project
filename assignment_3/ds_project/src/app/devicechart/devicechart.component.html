@@ -1,0 +1,12 @@
+<div>
+  <label for="deviceId">Device ID:</label>
+  <input id="deviceId" type="number" [(ngModel)]="deviceId" />
+</div>
+<div>
+  <label for="day">Day (as timestamp):</label>
+  <input id="day" type="number" [(ngModel)]="day" />
+</div>
+<button (click)="fetchChartData()">Generate Chart</button>
+
+<canvas id="chart" *ngIf="chartData.length > 0"></canvas>
+<p *ngIf="chartData.length < 3">Loading data or no data available...</p>

@@ -1,0 +1,98 @@
+<div *ngIf="isAdmin">
+    <h1>Admin Dashboard</h1>
+    
+    <div>
+        <h2>All Users</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let user of users">
+                    <td>{{ user.id }}</td>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>
+                        <button (click)="editUser(user)">Edit</button>
+                        <button (click)="deleteUser(user.id)">Delete</button> <!-- Delete button -->
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div>
+        <h2>Edit User</h2>
+        <form (ngSubmit)="updateUser()">
+            <label for="userId">ID:</label>
+            <input id="userId" [(ngModel)]="selectedUser.id" name="userId" disabled/>
+
+            <label for="username">Username:</label>
+            <input id="username" [(ngModel)]="selectedUser.username" name="username"/>
+
+            <label for="email">Email:</label>
+            <input id="email" [(ngModel)]="selectedUser.email" name="email"/>
+
+            <button type="submit">Update User</button>
+        </form>
+    </div>
+
+    <div>
+        <h2>All Devices</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Location</th>
+                    <th>Email</th>                    
+                    <th>Max kWh</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let device of devices">
+                    <td>{{ device.id }}</td>
+                    <td>{{ device.name }}</td>
+                    <td>{{ device.location }}</td>
+                    <td>{{ device.email }}</td>
+                    <td>{{ device.maxkwh }}</td>
+                    <td>
+                        <button (click)="editDevice(device)">Edit</button>
+                        <button (click)="deleteDevice(device.id)">Delete</button> <!-- Delete button -->
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div>
+        <div *ngIf="selectedDevice">
+            <h3>Edit Device</h3>
+            <form (ngSubmit)="updateDevice()">
+                <label for="name">Name:</label>
+                <input type="text" id="name" [(ngModel)]="selectedDevice.name" name="name" required />
+        
+                <label for="location">Location:</label>
+                <input type="text" id="location" [(ngModel)]="selectedDevice.location" name="location" required />
+        
+                <label for="email">Email:</label>
+                <input type="email" id="email" [(ngModel)]="selectedDevice.email" name="email" required />
+        
+                <label for="maxkwh">Max kWh:</label>
+                <input type="number" id="maxkwh" [(ngModel)]="selectedDevice.maxkwh" name="maxkwh" required />
+        
+                <button type="submit">Update Device</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div *ngIf="!isAdmin">
+    <p>You do not have permission to view this page. Redirecting to login...</p>
+</div>

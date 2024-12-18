@@ -1,0 +1,32 @@
+<!-- userpage.component.html -->
+<div *ngIf="devices.length > 0">
+  <h1>Your Devices</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Location</th>
+        <th>Email</th>
+        <th>Max kWh</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let device of devices">
+        <td>{{ device.id }}</td>
+        <td>{{ device.name }}</td>
+        <td>{{ device.location }}</td>
+        <td>{{ device.email }}</td>
+        <td>{{ device.maxkwh }}</td>
+        <td>
+          <button (click)="redirectToDeviceChart(device.id)">View Chart</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div *ngIf="!devices.length">
+  <p>No devices found for your account.</p>
+</div>

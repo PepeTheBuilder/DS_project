@@ -1,0 +1,29 @@
+<p>user-consumtion works!</p>
+<div *ngIf="devices.length > 0">
+    <h1>Your Devices</h1>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Location</th>
+          <th>Email</th>
+          <th>Max kWh</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let device of devices">
+          <td>{{ device.id }}</td>
+          <td>{{ device.name }}</td>
+          <td>{{ device.location }}</td>
+          <td>{{ device.email }}</td>
+          <td>{{ device.maxkwh }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  
+  <div *ngIf="!devices.length">
+    <p>No devices found for your account.</p>
+  </div>
+  
